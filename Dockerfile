@@ -10,6 +10,7 @@ RUN apt update && apt install -y \
     sqlite3 \
     socat \
     nginx \
+    gettext \
     && rm -rf /var/lib/apt/lists/*
 
 # Set timezone
@@ -25,8 +26,8 @@ RUN mkdir -p /usr/local/x-ui \
 # Create directories
 RUN mkdir -p /etc/x-ui /var/log/x-ui /etc/nginx
 
-# Create nginx.conf template
-RUN echo 'events {\n    worker_connections 1024;\n}\n\nhttp {\n    include /etc/nginx/mime.types;\n    default_type application/octet-stream;\n\n    server {\n        listen 3000;\n        listen [::]:3000;\n        server_name _;\n\n        location / {\n            proxy_pass http://127.0.0.1:2053;\n            proxy_set_header Host \$host;\n            proxy_set_header X-Real-IP \$remote_addr;\n            proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;\n            proxy_set_header X-Forwarded-Proto \$scheme;\n        }\n    }\n}' > /etc/nginx/nginx.conf.template
+# Create nginx.conf template with environment variable
+RUN echo 'events {\n    worker_connections 1024;\n}\n\nhttp {\n    include /etc/nginx/mime.types;\n    default_type application/octet-stream;\n\n    server {\n        listen ${WEB_PORT:-3000};\n        listen [::]:${WEB_PORT:-3000};\n        server_name _;\n\n        location / {\n            proxy_pass http://127.0.0.1:2053;\n            proxy_set_header Host \$host;\n            proxy_set_header X-Real-IP \$remote_addr;\n            proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;\n            proxy_set_header X-Forwarded-Proto \$scheme;\n        }\n        \n        location /xui/ {\n            proxy_pass http://127.0.0.1:2053/xui/;\n            proxy_set_header Host \$host;\n            proxy_set_header X-Real-IP \$remote_addr;\n            proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;\n            proxy_set_header X-Forwarded-Proto \$scheme;\n        }\n    }\n}' > /etc/nginx/nginx.conf.template
 
 COPY start.sh /start.sh
 RUN chmod +x /start.sh
