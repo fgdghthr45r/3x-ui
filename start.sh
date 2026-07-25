@@ -7,7 +7,7 @@ echo "🚀 Starting X-UI on port ${WEB_PORT}..."
 # تنظیم X-UI روی پورت ۳۰۰۰
 #/usr/local/x-ui/x-ui setting -port ${WEB_PORT} -webBasePath /xui
 
-./x-ui setting -port 2053 -webBasePath /managepanel/ || true
+./x-ui setting -port 2053 -webBasePath /xui/ || true
 
 
 
