@@ -1,20 +1,20 @@
 #!/bin/bash
 
-# Start X-UI in background
-echo "🚀 Starting X-UI..."
+# از پورت تعیین شده توسط Railway استفاده کن، یا اگر نبود از ۳۰۰۰ استفاده کن
+WEB_PORT=${PORT:-3000}
+
+echo "🚀 Starting X-UI on port ${WEB_PORT}..."
+
+# شروع X-UI در پس‌زمینه
 /usr/local/x-ui/x-ui &
 
-# Wait for X-UI to be ready
 sleep 3
 
-# Configure X-UI panel
-echo "🔧 Applying panel settings via x-ui CLI..."
-/usr/local/x-ui/x-ui setting -port 2053 -webBasePath /xui
+# تنظیمات پنل با پورت دریافتی از Railway
+echo "🔧 Applying panel settings..."
+/usr/local/x-ui/x-ui setting -port ${WEB_PORT} -webBasePath /xui
 
-# Set default port if not provided
-WEB_PORT=${WEB_PORT:-3000}
-
-# Create nginx config directly with the actual port value
+# ساخت فایل کانفیگ nginx با همان پورت
 echo "🔧 Creating nginx.conf for port: ${WEB_PORT}"
 cat > /etc/nginx/nginx.conf << EOF
 events {
@@ -31,7 +31,7 @@ http {
         server_name _;
 
         location / {
-            proxy_pass http://127.0.0.1:2053;
+            proxy_pass http://127.0.0.1:${WEB_PORT};
             proxy_set_header Host \$host;
             proxy_set_header X-Real-IP \$remote_addr;
             proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
@@ -39,7 +39,7 @@ http {
         }
         
         location /xui/ {
-            proxy_pass http://127.0.0.1:2053/xui/;
+            proxy_pass http://127.0.0.1:${WEB_PORT}/xui/;
             proxy_set_header Host \$host;
             proxy_set_header X-Real-IP \$remote_addr;
             proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
@@ -49,15 +49,6 @@ http {
 }
 EOF
 
-# Test nginx config
-echo "🔍 Testing nginx configuration..."
+# تست و شروع nginx
 nginx -t
-
-if [ $? -eq 0 ]; then
-    echo "✅ nginx configuration is valid"
-    echo "🌐 Starting nginx on port ${WEB_PORT}..."
-    nginx -g "daemon off;"
-else
-    echo "❌ nginx configuration failed"
-    exit 1
-fi
+nginx -g "daemon off;"
