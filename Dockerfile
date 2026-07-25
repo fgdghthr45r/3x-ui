@@ -1,29 +1,32 @@
-FROM alpine:3.19
+FROM debian:12-slim
 
-RUN apk add --no-cache \
+ENV TZ=Asia/Tehran
+
+RUN apt update && apt install -y \
     curl \
     bash \
     ca-certificates \
-    socat \
     tzdata \
-    sqlite \
-    nginx \
-    gettext \
-    openssl \
-    netcat-openbsd \
-    && ln -sf /usr/share/zoneinfo/Asia/Tehran /etc/localtime
+    sqlite3 \
+    socat \
+    && rm -rf /var/lib/apt/lists/*
 
-# دانلود و نصب 3x-ui
-RUN curl -L https://github.com/mhsanaei/3x-ui/releases/download/v3.4.2/x-ui-linux-amd64.tar.gz -o /tmp/x-ui.tar.gz \
-    && tar -xzf /tmp/x-ui.tar.gz -C /usr/local/ \
-    && rm /tmp/x-ui.tar.gz \
+
+RUN ln -sf /usr/share/zoneinfo/Asia/Tehran /etc/localtime
+
+
+RUN mkdir -p /usr/local/x-ui \
+    && curl -L \
+    https://github.com/Sir-MmD/vpn-ui/releases/download/v1.7.9/vpn-ui-amd64 \
+    -o /usr/local/x-ui/x-ui \
     && chmod +x /usr/local/x-ui/x-ui
 
-RUN mkdir -p /etc/x-ui /var/log/x-ui /etc/nginx/ssl
 
-COPY nginx.conf.template /etc/nginx/nginx.conf.template
+RUN mkdir -p /etc/x-ui /var/log/x-ui
+
+
 COPY start.sh /start.sh
 RUN chmod +x /start.sh
 
-# Railway پورت رو از طریق متغیر $PORT تزریق می‌کند
+
 CMD ["/start.sh"]
