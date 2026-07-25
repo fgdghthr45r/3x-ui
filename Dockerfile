@@ -20,7 +20,7 @@ RUN mkdir -p /usr/local/x-ui \
     && chmod +x /usr/local/x-ui/x-ui
 
 RUN mkdir -p /etc/x-ui /var/log/x-ui
-
+COPY nginx.conf.template /etc/nginx/nginx.conf.template
 COPY start.sh /start.sh
 RUN chmod +x /start.sh
 
